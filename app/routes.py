@@ -293,24 +293,3 @@ def manage_applications():
         applications_schema = ApplicationSchema(many=True)
         return applications_schema.jsonify(applications), 200
 
-# @main.route('/applications/<int:id>', methods=['PUT'])
-# @jwt_required()
-# def update_application(id):
-#     current_user = get_jwt_identity()
-
-#     # Check if the current user is an agent or admin
-#     if current_user['role'] in ['agent', 'admin','property_owner']:
-#         return jsonify({"message": "Unauthorized"}), 403
-
-#     application = Application.query.get_or_404(id)
-#     data = request.get_json()
-#     status = data.get('status')
-
-#     # Validate status
-#     if status not in ['approved', 'rejected']:
-#         return jsonify({"message": "Invalid status"}), 400
-
-#     application.status = status
-#     db.session.commit()
-
-#     return application_schema.jsonify(application), 200

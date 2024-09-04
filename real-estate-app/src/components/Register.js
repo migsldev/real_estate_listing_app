@@ -6,7 +6,7 @@ const Register = () => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [role, setRole] = useState('buyer');
+    const [role, setRole] = useState('buyer'); // Default role is 'buyer'
     const [error, setError] = useState('');
     const navigate = useNavigate(); // Changed to 'navigate'
 
@@ -48,8 +48,10 @@ const Register = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                 />
+                <label>Select Role:</label>
                 <select value={role} onChange={(e) => setRole(e.target.value)}>
-                    <option value="property_owner">Property Owner</option>
+                    <option value="buyer">Buyer</option>
+                    <option value="agent">Agent</option>
                 </select>
                 <button type="submit">Register</button>
             </form>

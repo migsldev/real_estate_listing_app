@@ -1,49 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
 
-const Properties = () => {
-    const [properties, setProperties] = useState([]);
+const PropertiesAgent = () => {
+    const [properties, setProperties] = useState([]); // Initialize as an empty array
+    const [applications, setApplications] = useState([]); // Store all applications
     const [newProperty, setNewProperty] = useState({ title: '', description: '', price: '', location: '' });
     const [updateProperty, setUpdateProperty] = useState(null);
     const [error, setError] = useState('');
-    const [success, setSuccess] = useState(''); // State for success messages
-    const [propertyId, setPropertyId] = useState(null);
+    const [success, setSuccess] = useState('');
 
     useEffect(() => {
         fetchProperties();
+        fetchAllApplications(); // Fetch all applications
     }, []);
 
-const fetchProperties = async () => {
-    try {
-        const response = await axios.get('/properties', {
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
-        console.log(response.data); // Log the response data
-        setProperties(response.data);
-    } catch (error) {
-        setError('Error fetching properties');
-    }
-};
-
-
-  const handleCreateProperty = async (event) => {
-        event.preventDefault();
+    const fetchProperties = async () => {
         try {
-            // Send POST request to create the property
-            const response = await axios.post('/properties', newProperty, {
+            const response = await axios.get('/properties', {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
+            setProperties(response.data || []);  // Ensure properties is always an array
+        } catch (error) {
+            setError('Error fetching properties');
+        }
+    };
 
-            // Extract the property ID from the response
-            const createdProperty = response.data; // Adjust according to your response structure
-            const id = createdProperty.id;
+    // Fetch all applications for the agent
+    const fetchAllApplications = async () => {
+        try {
+            const response = await axios.get('/applications', {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            setApplications(response.data || []); // Ensure applications is always an array
+        } catch (error) {
+            setError('Error fetching applications');
+        }
+    };
 
-            // Update state with the new property ID and success message
-            setPropertyId(id);
+    const handleCreateProperty = async (event) => {
+        event.preventDefault();
+        try {
+            await axios.post('/properties', newProperty, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
             setSuccess('Property created successfully!');
-
-            // Clear the form fields
             setNewProperty({ title: '', description: '', price: '', location: '' });
             fetchProperties();
         } catch (error) {
@@ -51,13 +51,13 @@ const fetchProperties = async () => {
         }
     };
 
-
     const handleUpdateProperty = async (event) => {
         event.preventDefault();
         try {
             await axios.put(`/properties/${updateProperty.id}`, updateProperty, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
+            setSuccess('Property updated successfully!');
             setUpdateProperty(null);
             fetchProperties();
         } catch (error) {
@@ -70,44 +70,45 @@ const fetchProperties = async () => {
             await axios.delete(`/properties/${id}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
+            setSuccess('Property deleted successfully!');
             fetchProperties();
         } catch (error) {
             setError('Error deleting property');
         }
     };
 
-const handleAddToWishlist = async (id) => {
-    try {
-        await axios.post('/wishlist', { property_id: id }, {
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
-        setSuccess('Property added to wishlist successfully!');
-        
-        // Refresh properties to update wishlist status
-        fetchProperties(); 
-    } catch (error) {
-        setError('Error adding to wishlist');
-    }
-};
-
-
-    const handleApplyToProperty = async (id) => {
+    const handleApproveApplication = async (applicationId) => {
         try {
-            await axios.post(`/applications/agent`, { property_id: id }, {
+            await axios.put(`/applications/${applicationId}`, { status: 'approved' }, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
-            setSuccess('Application submitted successfully!');
-            fetchProperties(); // Refresh properties if needed
+            setSuccess('Application approved successfully!');
+            fetchProperties();
+            fetchAllApplications(); // Update applications after approval
         } catch (error) {
-            setError('Error applying to property');
+            setError('Error approving application');
+        }
+    };
+
+    const handleRejectApplication = async (applicationId) => {
+        try {
+            await axios.put(`/applications/${applicationId}`, { status: 'rejected' }, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            setSuccess('Application rejected successfully!');
+            fetchProperties();
+            fetchAllApplications(); // Update applications after rejection
+        } catch (error) {
+            setError('Error rejecting application');
         }
     };
 
     return (
         <div>
-            <h2>Properties</h2>
+            <h2>Agent Properties</h2>
             {error && <p style={{ color: 'red' }}>{error}</p>}
-            {success && <p style={{ color: 'green' }}>{success}</p>} {/* Display success message */}
+            {success && <p style={{ color: 'green' }}>{success}</p>}
+
             <form onSubmit={handleCreateProperty}>
                 <input
                     type="text"
@@ -139,8 +140,7 @@ const handleAddToWishlist = async (id) => {
                 />
                 <button type="submit">Create Property</button>
             </form>
-            {/*}Display the property ID after successful creation */}
-            {propertyId && <p>Created Property ID: {propertyId}</p>}
+
             {updateProperty && (
                 <form onSubmit={handleUpdateProperty}>
                     <h3>Update Property</h3>
@@ -176,37 +176,61 @@ const handleAddToWishlist = async (id) => {
                     <button type="button" onClick={() => setUpdateProperty(null)}>Cancel</button>
                 </form>
             )}
-            <div>
-                <Link to="/applications">
-                    <button>Applications</button>
-                </Link>
-                <Link to="/wishlist">
-                    <button>Wishlist</button>
-                </Link>
-            </div>
+
+            {/* List properties and their applications */}
             <ul>
                 {properties.length > 0 ? (
                     properties.map(property => (
                         <li key={property.id}>
-                            <h3>Property ID: {property.id}</h3>
-                            <p>Title: {property.title || 'No Title'}</p>
-                            <p>Description: {property.description || 'No Description'}</p>
-                            <p>Price: {property.price || 'No Price'}</p>
-                            <p>Location: {property.location || 'No Location'}</p>
-                            <button onClick={() => handleApplyToProperty(property.id)}>Apply</button>
-                            <button onClick={() => handleAddToWishlist(property.id)}>
-                                {property.isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
-                            </button>
+                            <h3>{property.title}</h3>
+                            <p>{property.description}</p>
+                            <p>Price: {property.price}</p>
+                            <p>Location: {property.location}</p>
+
                             <button onClick={() => setUpdateProperty(property)}>Edit</button>
                             <button onClick={() => handleDeleteProperty(property.id)}>Delete</button>
+
+                            <h4>Applications for this Property</h4>
+                            <ul>
+                                {property.applications && property.applications.length > 0 ? (
+                                    property.applications.map(application => (
+                                        <li key={application.id}>
+                                            <p>Application ID: {application.id}</p>
+                                            <p>Status: {application.status}</p>
+                                            <button onClick={() => handleApproveApplication(application.id)}>Approve</button>
+                                            <button onClick={() => handleRejectApplication(application.id)}>Reject</button>
+                                        </li>
+                                    ))
+                                ) : (
+                                    <p>No applications available</p>
+                                )}
+                            </ul>
                         </li>
                     ))
                 ) : (
-                    <p>No properties available.</p>
+                    <p>No properties available</p>
+                )}
+            </ul>
+
+            {/* Display all applications */}
+            <h2>All Applications</h2>
+            <ul>
+                {applications.length > 0 ? (
+                    applications.map(application => (
+                        <li key={application.id}>
+                            <p>Application ID: {application.id}</p>
+                            <p>Property ID: {application.property_id}</p>
+                            <p>Status: {application.status}</p>
+                            <button onClick={() => handleApproveApplication(application.id)}>Approve</button>
+                            <button onClick={() => handleRejectApplication(application.id)}>Reject</button>
+                        </li>
+                    ))
+                ) : (
+                    <p>No applications available</p>
                 )}
             </ul>
         </div>
     );
 };
 
-export default Properties;
+export default PropertiesAgent;

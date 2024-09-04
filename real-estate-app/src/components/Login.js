@@ -6,14 +6,28 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const navigate = useNavigate(); // Correct use of useNavigate
+    const navigate = useNavigate();
 
     const handleLogin = async (event) => {
         event.preventDefault();
         try {
             const response = await axios.post('/login', { email, password });
-            localStorage.setItem('token', response.data.access_token);
-            navigate('/properties'); // Correct navigation
+
+            // Assuming the backend returns a role as part of the response
+            const { access_token, user_role } = response.data;
+
+            // Store token and user role
+            localStorage.setItem('token', access_token);
+            localStorage.setItem('role', user_role);
+
+            // Redirect based on user role
+            if (user_role === 'agent') {
+                navigate('/properties-agent');  // Redirect to agent's properties
+            } else if (user_role === 'buyer') {
+                navigate('/properties-buyer');  // Redirect to buyer's properties
+            } else {
+                setError('Invalid role');
+            }
         } catch (error) {
             setError('Invalid credentials');
         }

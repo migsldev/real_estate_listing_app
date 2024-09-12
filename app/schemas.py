@@ -19,6 +19,7 @@ class ApplicationSchema(ma.SQLAlchemyAutoSchema):
         load_instance = True
     # Optionally, you can add custom fields or validation here if needed
     property_id=ma.auto_field()
+    user_id=ma.auto_field()
     
 
 class WishlistSchema(ma.SQLAlchemyAutoSchema):

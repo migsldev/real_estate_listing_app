@@ -46,31 +46,27 @@ def login():
         "user_role": user.role  # Return the user's role (agent/buyer)
     }), 200
 
-# Property Management
+# Property Management (List, Create, Update, Delete)
 @main.route('/properties', methods=['GET', 'POST'])
 @jwt_required()
 def manage_properties():
     current_user = get_jwt_identity()
-
-    # If POST: Only agents can create properties
+    
     if request.method == 'POST':
-        if current_user['role'] != 'agent':
-            return jsonify({"message": "Unauthorized: Only agents can create properties."}), 403
-
         data = request.get_json()
         title = data.get('title')
         description = data.get('description')
         price = data.get('price')
         location = data.get('location')
+        property_type = data.get('property_type')  # Get the property type from the request
 
-        # Create the new property
         new_property = Property(
             title=title,
             description=description,
             price=price,
             location=location,
             listed_by=current_user['id'],
-            is_approved=True  # Ensure properties are approved by default
+            property_type=property_type  # Add property type to the new property
         )
 
         db.session.add(new_property)
@@ -78,29 +74,72 @@ def manage_properties():
 
         return property_schema.jsonify(new_property), 201
 
-    # If GET: Buyers and agents can see properties
-    if current_user['role'] == 'agent':
-        # Agents can see all properties they created
-        properties = Property.query.filter_by(listed_by=current_user['id']).all()
-    elif current_user['role'] == 'buyer':
-        # Buyers can only see open properties
-        properties = Property.query.all()
-    else:
-        return jsonify({"message": "Unauthorized: Invalid role."}), 403
-
+    properties = Property.query.all()
     return jsonify(property_schema.dump(properties, many=True)), 200
 
-@main.route('/wishlist', methods=['GET', 'POST', 'DELETE'])
+@main.route('/properties/<int:id>', methods=['PUT', 'DELETE'])
+@jwt_required()
+def modify_property(id):
+    property = Property.query.get_or_404(id)
+    current_user = get_jwt_identity()
+
+    if request.method == 'PUT':
+        data = request.get_json()
+
+        if property.listed_by != current_user['id']:
+            return jsonify({"message": "Unauthorized to update this property"}), 403
+
+        property.title = data.get('title', property.title)
+        property.description = data.get('description', property.description)
+        property.price = data.get('price', property.price)
+        property.location = data.get('location', property.location)
+        property.property_type = data.get('property_type', property.property_type)  # Update property type if provided
+
+        db.session.commit()
+
+        return property_schema.jsonify(property), 200
+
+    if request.method == 'DELETE':
+        if property.listed_by != current_user['id']:
+            return jsonify({"message": "Unauthorized to delete this property"}), 403
+
+        db.session.delete(property)
+        db.session.commit()
+
+        return jsonify({"message": "Property deleted"}), 200
+
+# Application Management (Submit, View)
+@main.route('/applications', methods=['POST', 'GET'])
+@jwt_required()
+def manage_applications():
+    current_user = get_jwt_identity()
+
+    if request.method == 'POST':
+        data = request.get_json()
+        property_id = data.get('property_id')
+        
+        # Check if the property exists
+        property = Property.query.get_or_404(property_id)
+
+        new_application = Application(
+            user_id=current_user['id'],
+            property_id=property_id
+        )
+
+        db.session.add(new_application)
+        db.session.commit()
+
+        return application_schema.jsonify(new_application), 201
+
+    applications = Application.query.filter_by(user_id=current_user['id']).all()
+    return jsonify(application_schema.dump(applications, many=True)), 200
+
+# Wishlist Management (Add, Remove)
+@main.route('/wishlist', methods=['POST', 'DELETE'])
 @jwt_required()
 def manage_wishlist():
     current_user = get_jwt_identity()
 
-    # GET method to retrieve the wishlist items
-    if request.method == 'GET':
-        wishlist_items = Wishlist.query.filter_by(user_id=current_user['id']).all()
-        return jsonify(wishlist_schema.dump(wishlist_items, many=True)), 200
-
-    # POST method to add a property to the wishlist
     if request.method == 'POST':
         data = request.get_json()
         property_id = data.get('property_id')
@@ -118,7 +157,6 @@ def manage_wishlist():
 
         return wishlist_schema.jsonify(new_wishlist_item), 201
 
-    # DELETE method to remove a property from the wishlist
     if request.method == 'DELETE':
         data = request.get_json()
         property_id = data.get('property_id')
@@ -132,38 +170,123 @@ def manage_wishlist():
 
         return jsonify({"message": "Wishlist item removed"}), 200
 
-# Application Approve/Reject (Agent Only)
-@main.route('/applications/<int:id>', methods=['PUT'])
+# View All Applications for Agent's Properties
+@main.route('/agent/applications', methods=['GET'])
 @jwt_required()
-def update_application(id):
+def view_agent_applications():
     current_user = get_jwt_identity()
 
-    # Ensure only agents can approve or reject applications
+    # Ensure the current user is an agent
     if current_user['role'] != 'agent':
-        return jsonify({"message": "Unauthorized: Only agents can approve/reject applications."}), 403
+        return jsonify({"message": "Unauthorized: Only agents can view applications for their properties"}), 403
 
-    application = Application.query.get_or_404(id)
-    data = request.get_json()
-    status = data.get('status')
+    # Find properties listed by the agent
+    agent_properties = Property.query.filter_by(listed_by=current_user['id']).all()
 
-    # Validate status
-    if status not in ['approved', 'rejected']:
-        return jsonify({"message": "Invalid status"}), 400
+    # Get property IDs for properties listed by the agent
+    property_ids = [property.id for property in agent_properties]
 
-    application.status = status
+    # Fetch all applications for these properties
+    applications = Application.query.filter(Application.property_id.in_(property_ids)).all()
+
+    return jsonify(application_schema.dump(applications, many=True)), 200
+
+
+@main.route('/applications/<int:application_id>/accept', methods=['PUT'])
+@jwt_required()
+def accept_application(application_id):
+    current_user = get_jwt_identity()
+
+    # Ensure the current user is an agent
+    if current_user['role'] != 'agent':
+        return jsonify({"message": "Unauthorized: Only agents can accept applications."}), 403
+
+    # Find the application by ID
+    application = Application.query.get_or_404(application_id)
+    
+    # Check if the property belongs to the agent
+    property = Property.query.get(application.property_id)
+    if property.listed_by != current_user['id']:
+        return jsonify({"message": "Unauthorized: You do not own this property."}), 403
+
+    # Update the application status to 'approved'
+    application.status = 'approved'
     db.session.commit()
 
     return application_schema.jsonify(application), 200
 
-# View Applications (Agent Only)
-@main.route('/applications', methods=['GET'])
+
+@main.route('/applications/<int:application_id>/reject', methods=['PUT'])
 @jwt_required()
-def view_applications():
+def reject_application(application_id):
     current_user = get_jwt_identity()
 
-    # Ensure only agents can view applications
-    #if current_user['role'] != 'agent':
-#    return jsonify({"message": "Unauthorized: Only agents can view applications."}), 403
+    # Ensure the current user is an agent
+    if current_user['role'] != 'agent':
+        return jsonify({"message": "Unauthorized: Only agents can reject applications."}), 403
 
-    applications = Application.query.all()
-    return jsonify(application_schema.dump(applications, many=True)), 200
+    # Find the application by ID
+    application = Application.query.get_or_404(application_id)
+
+    # Check if the property belongs to the agent
+    property = Property.query.get(application.property_id)
+    if property.listed_by != current_user['id']:
+        return jsonify({"message": "Unauthorized: You do not own this property."}), 403
+
+    # Update the application status to 'rejected'
+    application.status = 'rejected'
+    db.session.commit()
+
+    return application_schema.jsonify(application), 200
+
+
+# Function to delete an application
+@main.route('/applications/<int:application_id>', methods=['DELETE'])
+@jwt_required()
+def delete_application(application_id):
+    current_user = get_jwt_identity()
+
+    # Find the application by ID
+    application = Application.query.get_or_404(application_id)
+
+    # Check if the current user is the owner of the application
+    if application.user_id != current_user['id']:
+        return jsonify({"message": "Unauthorized: You can only delete your own applications."}), 403
+
+    # Delete the application
+    db.session.delete(application)
+    db.session.commit()
+
+    return jsonify({"message": "Application deleted successfully."}), 200
+
+
+# Get Wishlist Items
+@main.route('/wishlist', methods=['GET'])
+@jwt_required()
+def get_wishlist_items():
+    current_user = get_jwt_identity()  # Get the current logged-in user
+    user_id = current_user['id']
+
+    # Query wishlist items for the logged-in user
+    wishlist_items = Wishlist.query.filter_by(user_id=user_id).all()
+
+    if not wishlist_items:
+        return jsonify({"message": "No items found in the wishlist."}), 200
+
+    return wishlist_schema.jsonify(wishlist_items), 200
+
+
+# Get all wishlist items for the logged-in user
+@main.route('/wishlist', methods=['GET'])
+@jwt_required()
+def get_wishlist():
+    current_user = get_jwt_identity()  # Get the logged-in user
+
+    # Query the wishlist for the current user
+    wishlist_items = Wishlist.query.filter_by(user_id=current_user['id']).all()
+
+    # Fetch the properties that are in the wishlist
+    property_ids = [item.property_id for item in wishlist_items]
+    properties_in_wishlist = Property.query.filter(Property.id.in_(property_ids)).all()
+
+    return property_schema.jsonify(properties_in_wishlist, many=True), 200

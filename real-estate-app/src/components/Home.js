@@ -1,20 +1,28 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
+import logo from './logo.jpg';  // Importing logo from the local directory
 
+import React, { useState, useEffect } from 'react';
 const Home = () => {
+    useEffect(() => {
+        document.body.style.backgroundColor = '#ffffff';  // Sets the background color to white
+
+        // Cleanup function to reset the background color when the component unmounts
+        return () => {
+            document.body.style.backgroundColor = '';  // Resets the background color
+        };
+    }, []);
+
     return (
-        <div>
-            <h1>Welcome to Real Estate App</h1>
-            <p>Your one-stop destination for all your real estate needs.</p>
+        <div style={{ textAlign: 'center' }}>
+            <img src={logo} alt="Logo" style={{ width: '300px', margin: '20px 0' }} />  
+
             <div>
                 <Link to="/register">
-                    <button>Register as Property Owner</button>
+                    <button>Register as Buyer/Agent</button>
                 </Link>
-                {/* Add more buttons for other navigations if needed */}
                 <Link to="/login">
                     <button>Login</button>
                 </Link>
-
             </div>
         </div>
     );

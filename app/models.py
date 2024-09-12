@@ -19,7 +19,11 @@ class Property(db.Model):
     price = db.Column(db.Float, nullable=False)
     location = db.Column(db.String(100), nullable=False)
     listed_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    is_approved = db.Column(db.Boolean, default=False)  # Add this line
+    is_approved = db.Column(db.Boolean, default=False)
+
+    # New Enum column for property type
+    property_type = db.Column(db.Enum('Apartment', 'House', 'Room', name='property_types'), nullable=False)
+
     applications = db.relationship('Application', backref=backref('property', passive_deletes=True), lazy=True, cascade="all, delete-orphan")
     favorites = db.relationship('Wishlist', backref=backref('property', passive_deletes=True), lazy=True, cascade="all, delete-orphan")
 

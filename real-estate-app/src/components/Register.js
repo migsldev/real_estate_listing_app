@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import logo from './logo.jpg';  // Importing logo from the local directory
 
 const Register = () => {
     const [username, setUsername] = useState('');
@@ -8,7 +9,11 @@ const Register = () => {
     const [password, setPassword] = useState('');
     const [role, setRole] = useState('buyer'); // Default role is 'buyer'
     const [error, setError] = useState('');
-    const navigate = useNavigate(); // Changed to 'navigate'
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        document.body.style.backgroundColor = '#ffffff'; // Sets the background color to white
+    }, []);
 
     const handleRegister = async (event) => {
         event.preventDefault();
@@ -23,8 +28,8 @@ const Register = () => {
     };
 
     return (
-        <div>
-            <h2>Register</h2>
+        <div style={{ textAlign: 'center' }}>
+            <img src={logo} alt="Logo" style={{ width: '200px', margin: '20px 0' }} />
             {error && <p style={{ color: 'red' }}>{error}</p>}
             <form onSubmit={handleRegister}>
                 <input
@@ -53,7 +58,9 @@ const Register = () => {
                     <option value="buyer">Buyer</option>
                     <option value="agent">Agent</option>
                 </select>
-                <button type="submit">Register</button>
+                <div style={{ margin: '20px 0' }}> {/* Button container for better spacing */}
+                    <button type="submit">Register</button>
+                </div>
             </form>
         </div>
     );

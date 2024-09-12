@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import logo from './logo.jpg';  // Importing logo from the local directory
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -8,23 +9,28 @@ const Login = () => {
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
+    useEffect(() => {
+        document.body.style.backgroundColor = '#ffffff';  // Sets the background color to white
+
+        // Cleanup function to reset the background color when the component unmounts
+        return () => {
+            document.body.style.backgroundColor = '';  // Resets the background color
+        };
+    }, []);  // Empty dependency array ensures this effect runs only once after the initial render
+
     const handleLogin = async (event) => {
         event.preventDefault();
         try {
             const response = await axios.post('/login', { email, password });
-
-            // Assuming the backend returns a role as part of the response
             const { access_token, user_role } = response.data;
 
-            // Store token and user role
             localStorage.setItem('token', access_token);
             localStorage.setItem('role', user_role);
 
-            // Redirect based on user role
             if (user_role === 'agent') {
-                navigate('/properties-agent');  // Redirect to agent's properties
+                navigate('/properties-agent');
             } else if (user_role === 'buyer') {
-                navigate('/properties-buyer');  // Redirect to buyer's properties
+                navigate('/properties-buyer');
             } else {
                 setError('Invalid role');
             }
@@ -33,9 +39,13 @@ const Login = () => {
         }
     };
 
+    const handleNavigateHome = () => {
+        navigate('/register');  // Redirect to the registration page
+    };
+
     return (
-        <div>
-            <h2>Login</h2>
+        <div style={{ textAlign: 'center' }}>
+            <img src={logo} alt="Logo" style={{ width: '200px', margin: '20px 0' }} />
             {error && <p style={{ color: 'red' }}>{error}</p>}
             <form onSubmit={handleLogin}>
                 <input
@@ -52,7 +62,10 @@ const Login = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                 />
-                <button type="submit">Login</button>
+                <div style={{ margin: '20px 0' }}> {/* Button container */}
+                    <button type="submit" style={{ marginRight: '10px' }}>Login</button>
+                    <button onClick={handleNavigateHome}>Home</button>
+                </div>
             </form>
         </div>
     );

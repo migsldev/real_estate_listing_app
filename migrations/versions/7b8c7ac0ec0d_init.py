@@ -1,8 +1,8 @@
-"""Init
+"""init
 
-Revision ID: cd5df77b04b7
+Revision ID: 7b8c7ac0ec0d
 Revises: 
-Create Date: 2024-08-27 19:43:12.766569
+Create Date: 2024-09-09 15:57:57.534326
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'cd5df77b04b7'
+revision = '7b8c7ac0ec0d'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -35,6 +35,8 @@ def upgrade():
     sa.Column('price', sa.Float(), nullable=False),
     sa.Column('location', sa.String(length=100), nullable=False),
     sa.Column('listed_by', sa.Integer(), nullable=False),
+    sa.Column('is_approved', sa.Boolean(), nullable=True),
+    sa.Column('property_type', sa.Enum('Apartment', 'House', 'Room', name='property_types'), nullable=False),
     sa.ForeignKeyConstraint(['listed_by'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )

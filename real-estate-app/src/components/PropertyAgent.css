@@ -1,288 +1,172 @@
-/* General Body and Container Styles */
-body {
-    font-family: 'Poppins', sans-serif;
-    background-color: #f0f2f5;
-    margin: 0;
-    padding: 0;
-}
-
-.header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between; /* Ensures spacing between the title and button */
-    padding: 20px; /* Adjust padding as needed */
-}
-
-
+/* General Container Styles */
 .container {
-    width: 90%;
-    margin: 0 auto;
-    padding: 20px 0;
-    background-color: #f0f2f5;
-}
-
-/* Hero Section */
-.hero {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background-color: #ffffff;
-    padding: 40px;
-    margin-bottom: 40px;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-}
-
-.hero img {
-    width: 50%;
-    height: auto;
-    border-radius: 12px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-}
-
-.hero-text {
-    width: 45%;
-    text-align: left;
-}
-
-.hero h2 {
-    font-size: 2.5rem;
-    margin-bottom: 15px;
-    color: #333;
-    font-weight: 700;
-}
-
-.hero p {
-    font-size: 1.1rem;
-    color: #777;
-    margin-bottom: 25px;
-}
-
-.hero button {
-    padding: 12px 25px;
-    font-size: 1.1rem;
-    background-color: #1ABC9C;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.3s ease;
-}
-
-.hero button:hover {
-    background-color: #16A085;
-}
-
-/* Properties Section */
-.properties-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px;
-    margin-top: 30px;
-}
-
-.property-card {
-    background-color: white;
-    border-radius: 12px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.property-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
-}
-
-.property-card img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-}
-
-.card-content {
     padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
-.card-content h3 {
-    font-size: 1.4rem;
-    color: #34495E;
-    margin-bottom: 10px;
-    font-weight: 600;
-}
-
-.card-content p {
-    font-size: 1rem;
-    color: #777;
-    margin-bottom: 10px;
-}
-
-.card-content .price {
-    font-size: 1.2rem;
-    color: #27ae60;
+/* Navbar Styles */
+.navbar {
+    display: flex;
+    justify-content: space-between;
     margin-bottom: 20px;
 }
 
-.card-content button {
+.navbar button {
     padding: 10px 20px;
-    background-color: #3498DB;
-    color: white;
+    margin-right: 10px;
     border: none;
-    border-radius: 8px;
     cursor: pointer;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.3s ease;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    font-size: 16px;
 }
 
-.card-content button:hover {
-    background-color: #2980B9;
+.navbar button.active {
+    background-color: #0056b3;
+}
+
+.navbar button:hover {
+    background-color: #0056b3;
+}
+
+.logout {
+    background-color: #dc3545;
+}
+
+.logout:hover {
+    background-color: #c82333;
+}
+
+/* Property Card Styles */
+.properties-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.property-card {
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    width: 300px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.property-card:hover {
+    transform: translateY(-5px);
+}
+
+.property-image {
+    max-width: 100%;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.property-card h3 {
+    margin: 10px 0;
+    color: #333;
+}
+
+.property-card p {
+    color: #666;
+    margin: 5px 0;
 }
 
 .action-buttons {
     display: flex;
     justify-content: space-between;
-    margin-top: 20px;
-}
-
-.action-buttons button {
-    padding: 8px 15px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.3s ease;
-}
-
-.action-buttons .edit-button {
-    background-color: #F39C12;
-    color: white;
-}
-
-.action-buttons .edit-button:hover {
-    background-color: #E67E22;
-}
-
-.action-buttons .delete-button {
-    background-color: #E74C3C;
-    color: white;
-}
-
-.action-buttons .delete-button:hover {
-    background-color: #C0392B;
-}
-
-/* Application Section */
-.applications-list {
-    margin-top: 40px;
-    background-color: white;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-}
-
-.applications-list h2 {
-    font-size: 1.8rem;
-    margin-bottom: 25px;
-    color: #34495E;
-    font-weight: 700;
-}
-
-.applications-list ul {
-    list-style-type: none;
-    padding: 0;
-}
-
-.applications-list li {
-    padding: 20px;
-    background-color: #f9f9f9;
-    margin-bottom: 15px;
-    border-radius: 8px;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-    transition: box-shadow 0.2s ease;
-}
-
-.applications-list li:hover {
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-}
-
-.applications-list li p {
-    font-size: 1rem;
-    color: #666;
-    margin-bottom: 10px;
-}
-
-.applications-list li button {
-    padding: 8px 18px;
-    background-color: #1ABC9C;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.3s ease;
-}
-
-.applications-list li button:hover {
-    background-color: #16A085;
-}
-
-.applications-list .reject-button {
-    background-color: #E74C3C;
-}
-
-.applications-list .reject-button:hover {
-    background-color: #C0392B;
-}
-
-/* Success and Error Messages */
-.error {
-    color: #E74C3C;
-    font-size: 1rem;
-    margin-top: 10px;
-}
-
-.success {
-    color: #27ae60;
-    font-size: 1rem;
-    margin-top: 10px;
-}
-
-/* Logout Button */
-.logout, .toggle-wishlist {
-    padding: 10px 25px;
-    background-color: #E74C3C;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.3s ease;
     margin-top: 15px;
 }
 
-.logout:hover, .toggle-wishlist:hover {
-    background-color: #C0392B;
+.edit-button, .delete-button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .hero {
-        flex-direction: column;
-        text-align: center;
-    }
-
-    .hero img {
-        width: 100%;
-        margin-bottom: 20px;
-    }
-
-    .hero-text {
-        width: 100%;
-    }
-
-    .properties-grid {
-        grid-template-columns: 1fr;
-    }
+.edit-button {
+    background-color: #ffc107;
+    color: #fff;
 }
- 
+
+.edit-button:hover {
+    background-color: #e0a800;
+}
+
+.delete-button {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.delete-button:hover {
+    background-color: #c82333;
+}
+
+/* Form Styles */
+.property-form {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.property-form input, 
+.property-form textarea, 
+.property-form select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.property-form .submit-button {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.property-form .submit-button:hover {
+    background-color: #218838;
+}
+
+/* Scroll to Top Button */
+.scroll-top-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 15px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+.scroll-top-button:hover {
+    background-color: #0056b3;
+}
+
+/* Success and Error Messages */
+.success {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.error {
+    color: #dc3545;
+    font-weight: bold;
+}

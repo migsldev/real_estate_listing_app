@@ -5,6 +5,16 @@ from app.models import User, Property, Application, Wishlist
 from app.schemas import UserSchema, PropertySchema, ApplicationSchema, WishlistSchema
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
+def create_jwt_for_user(user):
+    additional_claims = {
+        "id": user.id,
+        "username": user.username,
+        "role": user.role,
+        "email": user.email  # Make sure this line is correctly fetching the email from the user object
+    }
+    print(additional_claims)
+    return create_access_token(identity=additional_claims)
+
 main = Blueprint('main', __name__)
 
 user_schema = UserSchema()
@@ -50,7 +60,10 @@ def login():
 @main.route('/properties', methods=['GET', 'POST'])
 @jwt_required()
 def manage_properties():
-    current_user = get_jwt_identity()
+    current_user = get_jwt_identity()  # Get current user's ID from the JWT token
+    
+    # Fetch current user details from the User table
+    user = User.query.get(current_user['id'])
     
     if request.method == 'POST':
         data = request.get_json()
@@ -60,13 +73,16 @@ def manage_properties():
         location = data.get('location')
         property_type = data.get('property_type')  # Get the property type from the request
 
+        # Create new property and populate agent details
         new_property = Property(
             title=title,
             description=description,
             price=price,
             location=location,
-            listed_by=current_user['id'],
-            property_type=property_type  # Add property type to the new property
+            listed_by=user.id,
+            property_type=property_type,  # Add property type to the new property
+            agent_name=user.username,     # Populate agent name
+            agent_email=user.email        # Populate agent email
         )
 
         db.session.add(new_property)
@@ -74,9 +90,9 @@ def manage_properties():
 
         return property_schema.jsonify(new_property), 201
 
+    # Fetch all properties
     properties = Property.query.all()
     return jsonify(property_schema.dump(properties, many=True)), 200
-
 @main.route('/properties/<int:id>', methods=['PUT', 'DELETE'])
 @jwt_required()
 def modify_property(id):
@@ -108,22 +124,27 @@ def modify_property(id):
 
         return jsonify({"message": "Property deleted"}), 200
 
-# Application Management (Submit, View)
 @main.route('/applications', methods=['POST', 'GET'])
 @jwt_required()
 def manage_applications():
     current_user = get_jwt_identity()
+    #print(current_user)
+    print(current_user.get('email'))
+    user = User.query.get(current_user['id'])
 
     if request.method == 'POST':
         data = request.get_json()
         property_id = data.get('property_id')
-        
+
         # Check if the property exists
         property = Property.query.get_or_404(property_id)
 
+        # Create a new application, handling missing email
         new_application = Application(
             user_id=current_user['id'],
-            property_id=property_id
+            property_id=property_id,
+            buyer_name=current_user['username'],  # Username is assumed to be always present
+            buyer_email=user.email  # Fallback if 'email' is not in JWT
         )
 
         db.session.add(new_application)
@@ -131,9 +152,9 @@ def manage_applications():
 
         return application_schema.jsonify(new_application), 201
 
+    # Fetch all applications made by the current user
     applications = Application.query.filter_by(user_id=current_user['id']).all()
     return jsonify(application_schema.dump(applications, many=True)), 200
-
 # Wishlist Management (Add, Remove)
 @main.route('/wishlist', methods=['POST', 'DELETE'])
 @jwt_required()

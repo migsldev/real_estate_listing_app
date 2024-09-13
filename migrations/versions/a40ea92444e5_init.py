@@ -1,8 +1,8 @@
 """init
 
-Revision ID: 7b8c7ac0ec0d
+Revision ID: a40ea92444e5
 Revises: 
-Create Date: 2024-09-09 15:57:57.534326
+Create Date: 2024-09-12 20:20:38.779276
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '7b8c7ac0ec0d'
+revision = 'a40ea92444e5'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -37,6 +37,8 @@ def upgrade():
     sa.Column('listed_by', sa.Integer(), nullable=False),
     sa.Column('is_approved', sa.Boolean(), nullable=True),
     sa.Column('property_type', sa.Enum('Apartment', 'House', 'Room', name='property_types'), nullable=False),
+    sa.Column('agent_name', sa.String(length=50), nullable=False),
+    sa.Column('agent_email', sa.String(length=100), nullable=False),
     sa.ForeignKeyConstraint(['listed_by'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -46,6 +48,8 @@ def upgrade():
     sa.Column('property_id', sa.Integer(), nullable=False),
     sa.Column('status', sa.Enum('pending', 'approved', 'rejected', name='application_status'), nullable=False),
     sa.Column('date_submitted', sa.DateTime(), nullable=False),
+    sa.Column('buyer_name', sa.String(length=50), nullable=False),
+    sa.Column('buyer_email', sa.String(length=100), nullable=True),
     sa.ForeignKeyConstraint(['property_id'], ['property.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
